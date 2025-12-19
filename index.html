@@ -83,39 +83,55 @@
     </footer>
 
     <script>
-        // Smooth slider: one full-width slide at a time + dots + pause on hover
-        let sliderIndex = 0;
+      // Fade slider: one slide visible at a time with smooth cross-fade + Ken Burns.
+      let sliderIndex = 0;
 
-        const slider = document.getElementById('slider');
-        const slidesTrack = slider.querySelector('.slides');
-        const slideEls = slider.querySelectorAll('.slide');
-        const dots = slider.querySelectorAll('.slider-dots button);
+      const slider = document.getElementById('slider');
+      const slideEls = slider.querySelectorAll('.slide');
+      const dots = slider.querySelectorAll('.slider-dots button');
 
-        function goToSlide(index) {
-            sliderIndex = (index + slideEls.length) % slideEls.length;
-            slidesTrack.style.transform = `translateX(${-sliderIndex * 100}%)`;
+      function restartKenBurns(slide) {
+        const img = slide.querySelector('img');
+        if (!img) return;
+        img.style.animation = 'none';
+        void img.offsetHeight; // force reflow
+        img.style.animation = '';
+      }
 
-            dots.forEach((btn, i) => {
-                btn.setAttribute('aria-current', i === sliderIndex ? 'true' : 'false');
-            });
-        }
+      function setActiveSlide(index) {
+        sliderIndex = (index + slideEls.length) % slideEls.length;
 
-        function showNextSlide() {
-            goToSlide(sliderIndex + 1);
-        }
-
-        let intervalId = setInterval(showNextSlide, 3500);
-
-        slider.addEventListener('mouseenter', () => clearInterval(intervalId));
-        slider.addEventListener('mouseleave', () => {
-            intervalId = setInterval(showNextSlide, 3500);
+        slideEls.forEach((slide, i) => {
+          const isActive = i === sliderIndex;
+          slide.classList.toggle('is-active', isActive);
+          if (isActive) restartKenBurns(slide);
         });
 
         dots.forEach((btn, i) => {
-            btn.addEventListener('click', () => goToSlide(i));
+          btn.setAttribute('aria-current', i === sliderIndex ? 'true' : 'false');
         });
+      }
 
-        goToSlide(0);
+      function nextSlide() {
+        setActiveSlide(sliderIndex + 1);
+      }
+
+      // Auto-play
+      let intervalId = setInterval(nextSlide, 4500);
+
+      // Pause on hover
+      slider.addEventListener('mouseenter', () => clearInterval(intervalId));
+      slider.addEventListener('mouseleave', () => {
+        intervalId = setInterval(nextSlide, 4500);
+      });
+
+      // Dots click
+      dots.forEach((btn, i) => {
+        btn.addEventListener('click', () => setActiveSlide(i));
+      });
+
+      // Init
+      setActiveSlide(0);
     </script>
 </body>
 </html>
